@@ -7,6 +7,7 @@ const express = require('express'),
       {CONNECTION_STRING, SESSION_SECRET} = process.env,
       authCtrl = require('./controllers/authController'),
       treasureCtrl = require('./controllers/treasureController'),
+      auth = require('./middleware/authMiddleware'),
       PORT = 4000;
 
 app.use(express.json());
@@ -41,6 +42,7 @@ app.get('/auth/logout', authCtrl.logout);
 
 //Treasure Endpoints
 app.get('/api/treasure/dragon', treasureCtrl.dragonTreasure);
+app.get('/api/treasure/user', auth.usersOnly, treasureCtrl.getUserTreasure);
 
 
 
