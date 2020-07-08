@@ -4,11 +4,11 @@ const bcrypt = require('bcryptjs');
 module.exports = {
     register: async (req, res) => {
         const {username, password, isAdmin} = req.body;
-        const db = req.app.get("db");
+        const db = req.app.get('db');
         const result = await db.get_user([username]);
         const existingUser = result[0];
         if(existingUser) {
-            return res.status(409).send("Username taken");
+            return res.status(409).send('Username Taken');
         } else {
             const salt = bcrypt.genSaltSync(10);
             const hash = bcrypt.hashSync(password, salt);
@@ -24,5 +24,26 @@ module.exports = {
 
     },
 
-    
+    login: async (req, res) => {
+        const {username, password} = req.body;
+        const db = req.app.get('db');
+        const foundUser = await db.get_user([username]);
+        const user = foundUser[0];
+        if (!user) {
+            return res.status(401).send('User not found. Please register as a new user before logging in.');
+        } else {
+            const isAuthenticated = bcrypt.compareSync(password, user.hash);
+            if (!isAuthenticated) {
+                res.status(403).send('Incorrect Password');
+            } else {
+                req.session.user = {
+                    isAdmin: user.is_admin,
+                    id: user.id,
+                    username: user.username
+                }
+                res.status(200).send(req.session.user);
+            }
+        }
+
+    }
 }
